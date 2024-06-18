@@ -20,7 +20,8 @@
 static inline bool debug_enabled()
 {
     static const auto _enabled = []() {
-        return bool{::getenv("CTI_DEBUG")};
+        char * val = getenv("CTI_DEBUG");
+        return bool{ val == NULL ? false : true };
     }();
     return _enabled;
 }
@@ -80,7 +81,7 @@ static auto find_module_base(Dyninst::ProcControlAPI::Process const& proc)
             continue;
         }
 
-        log("Reading library %p\n", lib);
+        log("Reading library %p\n", &lib);
         if (!lib->isSharedLib()) {
             return lib->getLoadAddress();
         }

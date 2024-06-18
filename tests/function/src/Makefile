@@ -9,8 +9,8 @@ CRAY_CTI_BE_LIBS = -lcommontools_be
 
 PTHREAD_FLAGS = -pthread
 
-CC  := cc
-CXX := $(shell echo $(shell which CC || echo g++))
+CC  := $(shell echo $(shell which CC || echo gcc))
+CXX := $(shell echo $(shell which CXX || echo g++))
 
 CFLAGS = -Wall -g -O0 -I$(CTI)/include
 LDFLAGS = -Wl,-rpath,$(CTI)/lib $(CRAY_CTI_FE_LIBS)

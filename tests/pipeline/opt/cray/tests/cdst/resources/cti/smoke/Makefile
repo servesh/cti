@@ -1,7 +1,9 @@
-# this makefile assumes that the cray-cti-devel module is loaded and that cc and pkg-config are available.
+# this makefile assumes that the cray-cti-devel module is loaded and that $(CC) and pkg-config are available.
 # each rule maps to a test in tests.py of the same name.
 
 FE_PKG_CONFIG = $(shell pkg-config --cflags --libs common_tools_fe)
+CC  := $(shell echo $(shell which CC || echo g$(CC)))
+CXX := $(shell echo $(shell which CXX || echo g++))
 
 PREBUILT = \
   test_cti_version \
@@ -17,7 +19,7 @@ bindir:
 	install -d ./bin
 
 test_build: bindir
-	cc -g -O0 $(FE_PKG_CONFIG) ./src/cti_version.c -o ./bin/test_build
+	$(CC) -g -O0 $(FE_PKG_CONFIG) ./src/cti_version.c -o ./bin/test_build
 
 # prebuilt binaries are built at cti build time and included with the test rpm.
 # since these are built at cti build time, the cti pkg-config is not available.
@@ -34,10 +36,10 @@ prebuiltdir:
 	install -d ./prebuilt
 
 test_cti_version: prebuiltdir
-	cc -g -O0 $(PREBUILT_FLAGS) ./src/cti_version.c -o ./prebuilt/test_cti_version
+	$(CC) -g -O0 $(PREBUILT_FLAGS) ./src/cti_version.c -o ./prebuilt/test_cti_version
 
 test_cti_current_wlm: prebuiltdir
-	cc -g -O0 $(PREBUILT_FLAGS) ./src/cti_current_wlm.c -o ./prebuilt/test_cti_current_wlm
+	$(CC) -g -O0 $(PREBUILT_FLAGS) ./src/cti_current_wlm.c -o ./prebuilt/test_cti_current_wlm
 
 clean:
 	rm -rf ./bin ./prebuilt
