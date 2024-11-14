@@ -127,6 +127,7 @@ _cti_be_init(void)
     }
 
     _cti_be_isInit = true;
+    fprintf(stderr, "wlm %s is setup!\n", cti_be_wlm_type_toString(atoi(wlm_str)));
 }
 
 // Destructor function

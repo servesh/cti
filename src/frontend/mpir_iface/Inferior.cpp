@@ -17,12 +17,17 @@
 #include "useful/cti_argv.hpp"
 #include "useful/cti_execvp.hpp"
 
+#include "BPatch.h"
+#include "BPatch_process.h"
+#include "BPatch_image.h"
+#include "BPatch_module.h"
+#include "BPatch_function.h"
+#include "BPatch_Vector.h"
+#include "BPatch_thread.h"
+
 static inline bool debug_enabled()
 {
-    static const auto _enabled = []() {
-        char * val = getenv("CTI_DEBUG");
-        return bool{ val == NULL ? false : true };
-    }();
+    static const auto _enabled = (::getenv("CTI_DEBUG") != nullptr);
     return _enabled;
 }
 
@@ -178,6 +183,53 @@ Inferior::~Inferior() {
 
 pid_t Inferior::getPid() {
     return m_proc->getPid();
+}
+
+void Inferior::InjectPalsBarrier() {
+    m_proc->detach( true );
+    BPatch bpatch;
+    BPatch_process* proc = bpatch.processAttach( {}, m_proc->getPid() );
+    proc->loadLibrary( "libpals.so", false );
+    BPatch_image* image = proc->getImage();
+    BPatch_module* libpals = image->findModule("libpals.so", true);
+    if (!libpals) {
+        throw std::runtime_error("image->findModule('libpals.so') failure");
+    }
+    libpals->dumpMangled("");
+
+    BPatch_Vector<BPatch_function *> *libpals_funcs = libpals->getProcedures();
+
+    for (auto i: *libpals_funcs)
+        std::cout << i->getName() << std::endl;
+
+    BPatch_function * pals_init_f = libpals->findFunctionByMangled( "pals_init", true );
+    if( pals_init_f == NULL ) {
+        throw std::runtime_error("cannot find pals_init function");
+    }
+
+    BPatch_Vector< BPatch_function* > __pals_initFunc, __pals_start_barrierFunc;
+    libpals->findFunction("pals_init", __pals_initFunc);
+    if (__pals_initFunc.empty()) {
+        throw std::runtime_error("cannot find pals_init function");
+    }
+    libpals->findFunction("pals_start_barrier", __pals_start_barrierFunc);
+    if (__pals_start_barrierFunc.empty()) {
+        throw std::runtime_error("cannot find pals_start_barrier function");
+    }
+
+    BPatch_paramExpr arg (0);
+    std::vector< BPatch_snippet* > __pals_initFuncArgs, __pals_start_barrierFuncArgs;
+    __pals_initFuncArgs.push_back( &arg );
+    __pals_start_barrierFuncArgs.push_back( &arg );
+
+    BPatch_funcCallExpr __pals_initFuncCall(*__pals_initFunc[0], __pals_initFuncArgs);
+    BPatch_funcCallExpr __pals_start_barrierFuncCall(*__pals_start_barrierFunc[0], __pals_start_barrierFuncArgs);
+
+    proc->oneTimeCode(__pals_initFuncCall);
+    proc->oneTimeCode(__pals_start_barrierFuncCall);
+    
+    proc->detach(true);
+    m_proc->reAttach();
 }
 
 /* symbol / breakpoint manipulation */

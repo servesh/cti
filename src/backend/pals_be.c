@@ -31,6 +31,7 @@ typedef struct {
 	const char * (*pals_errmsg)(pals_state_t *state); // Returns static string, do not free
 	pals_rc_t (*pals_init)(pals_state_t *state);
 	pals_rc_t (*pals_fini)(pals_state_t *state);
+	pals_rc_t (*pals_start_barrier)(pals_state_t *state);
 
 	pals_rc_t (*pals_get_nodes)(pals_state_t *state, pals_node_t **nodes, int *nnodes);
 	pals_rc_t (*pals_get_nodeidx)(pals_state_t *state, int *nodeidx);
@@ -499,6 +500,15 @@ _cti_be_pals_init(void)
 		goto cleanup__cti_be_pals_init;
 	}
 
+	// pals_start_barrier
+  dlerror();
+  _cti_libpals_funcs->pals_start_barrier = dlsym(_cti_libpals_funcs->handle, "pals_start_barrier");
+  dl_err = dlerror();
+  if (dl_err != NULL) {
+    fprintf(stderr, "pals_be " PALS_BE_LIB_NAME " dlsym: %s\n", dl_err);
+		goto cleanup__cti_be_pals_init;
+  }
+
 	// pals_fini
 	dlerror();
 	_cti_libpals_funcs->pals_fini = dlsym(_cti_libpals_funcs->handle, "pals_fini");
@@ -546,6 +556,17 @@ _cti_be_pals_init(void)
 		fprintf(stderr, "libpals initialization failed: %s\n", _cti_libpals_funcs->pals_errmsg(_cti_pals_state));
 		goto cleanup__cti_be_pals_init;
 	}
+	// Setup pals barrier
+	if (_cti_libpals_funcs->pals_start_barrier(_cti_pals_state) != PALS_OK) {
+    fprintf(stderr, "libpals barrier setup failed: %s\n", _cti_libpals_funcs->pals_errmsg(_cti_pals_state));
+    goto cleanup__cti_be_pals_init;
+  }
+	else
+	{
+    printf("libpals barrier setup completed: %s\n", _cti_libpals_funcs->pals_errmsg(_cti_pals_state));
+	}
+
+		printf("libpals init completed\n");
 
 	// Successful initialization
 	rc = 0;

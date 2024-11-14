@@ -20,10 +20,7 @@ using Symbol  = Inferior::Symbol;
 
 static inline bool debug_enabled()
 {
-    static const auto _enabled = []() {
-        char * val = getenv("CTI_DEBUG");
-        return bool{ val == NULL ? false : true };
-    }();
+    static const auto _enabled = (::getenv("CTI_DEBUG") != nullptr);
     return _enabled;
 }
 
@@ -84,6 +81,13 @@ void MPIRInstance::setupMPIRStandard() {
 
 void MPIRInstance::runToMPIRBreakpoint() {
     log("running inferior til MPIR_Breakpoint\n");
+
+    //m_inferior.addSymbol("_init");
+    //m_inferior.setBreakpoint("_init");
+    //m_inferior.writeVariable("MPIR_being_debugged", 1);
+    //m_inferior.setBreakpoint("MPIR_Breakpoint");
+    //m_inferior.continueRun();
+    m_inferior.InjectPalsBarrier();
 
     while (true) {
         m_inferior.continueRun();

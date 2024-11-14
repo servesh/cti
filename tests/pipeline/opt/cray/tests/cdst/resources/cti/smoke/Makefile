@@ -2,8 +2,8 @@
 # each rule maps to a test in tests.py of the same name.
 
 FE_PKG_CONFIG = $(shell pkg-config --cflags --libs common_tools_fe)
-CC  := $(shell echo $(shell which CC || echo g$(CC)))
-CXX := $(shell echo $(shell which CXX || echo g++))
+CC  ?= $(shell echo $(shell which CC || echo gcc))
+CXX ?= $(shell echo $(shell which CXX || echo g++))
 
 PREBUILT = \
   test_cti_version \

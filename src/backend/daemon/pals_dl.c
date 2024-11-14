@@ -21,6 +21,7 @@
 typedef struct {
 	void *handle;
 	pals_rc_t (*pals_init)(pals_state_t *state);
+	pals_rc_t (*pals_start_barrier)(pals_state_t *state);
 	pals_rc_t (*pals_fini)(pals_state_t *state);
 	pals_rc_t (*pals_get_nodeidx)(pals_state_t *state, int *nodeidx);
 } cti_libpals_funcs_t;
@@ -84,9 +85,18 @@ _cti_pals_getNodeID(void)
 		goto cleanup__cti_pals_getNodeID;
 	}
 
+	// pals_start_barrier
+	dlerror();
+	_cti_libpals_funcs.pals_start_barrier = dlsym(_cti_libpals_funcs.handle, "pals_start_barrier");
+	dl_err = dlerror();
+	if (dl_err != NULL) {
+		fprintf(stderr, "pals_dl " PALS_BE_LIB_NAME " dlsym: %s\n", dl_err);
+		goto cleanup__cti_pals_getNodeID;
+	}
+
 	// pals_fini
 	dlerror();
-	_cti_libpals_funcs.pals_fini = dlsym(_cti_libpals_funcs.handle, "pals_init");
+	_cti_libpals_funcs.pals_fini = dlsym(_cti_libpals_funcs.handle, "pals_fini");
 	dl_err = dlerror();
 	if (dl_err != NULL) {
 		fprintf(stderr, "pals_dl " PALS_BE_LIB_NAME " dlsym: %s\n", dl_err);

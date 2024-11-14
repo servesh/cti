@@ -56,6 +56,8 @@ public: // interface
     bool isTerminated() { return !m_proc || m_proc->isTerminated(); }
     void terminate();
 
+    void InjectPalsBarrier();
+
     void writeFromBuf(std::string const& destName, const char* buf, size_t len);
     void writeFromBuf(Address destAddr,            const char* buf, size_t len);
 

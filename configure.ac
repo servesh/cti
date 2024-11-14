@@ -231,7 +231,7 @@ AS_IF([test "x$with_flux" != xno], [
     [AC_MSG_ERROR([Couldn't find libflux headers in $with_flux. Set --with-flux option])],
     [AC_INCLUDES_DEFAULT])
 ])
-AM_CONDITIONAL([ENABLE_FLUX], [test x$enable_flux != xno])
+AM_CONDITIONAL([ENABLE_FLUX], [test x$with_flux != xno])
 
 ############################
 ### Check for libraries. ###
@@ -308,7 +308,7 @@ AX_CXX_CHECK_LIB(   [pcontrol],
                     [AC_MSG_ERROR([libpcontrol not found.])]
                     )
 AC_LANG_POP([C++])
-AC_SUBST([MPIR_LIBS], ["$DYNINST_LIBS -lsymtabAPI -lpcontrol"])
+AC_SUBST([MPIR_LIBS], ["$DYNINST_LIBS -lsymtabAPI -lpcontrol -ldyninstAPI"])
 AC_SUBST([MPIR_CFLAGS], ["$DYNINST_CFLAGS"])
 dnl restore flags
 LDFLAGS="$save_LDFLAGS"
